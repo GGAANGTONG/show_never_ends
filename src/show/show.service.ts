@@ -5,7 +5,12 @@ import {Repository} from 'typeorm';
 import {Show} from './entities/show.entity'
 import {CreateShowDto} from './dto/show.dto'
 
-import {BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import {RolesGuard} from '../auth/roles.guard'
+
+import {Roles} from '../auth/roles.decorator' 
+import {Role} from '../user/types/userRole.type'
+
 import {InjectRepository} from '@nestjs/typeorm'
 import {Like} from 'typeorm'
 
@@ -19,6 +24,8 @@ export class ShowService {
     private readonly showRepository: Repository<Show>
   ){}
   //1-1. 새 공연 등록
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   async create(file:Express.Multer.File, createShowDto:CreateShowDto) {
     const {name, category, intro, content, actors, price, firstShow, lastShow} = createShowDto
     if(!file.originalname.endsWith('.png'))

@@ -13,7 +13,7 @@ export class ReservationController {
     return this.reservationService.reserve(reservationDto);
   }
   @Post()
-  check(@Body() email: Partial<ReservationDto>) {
+  check(@Body() reservationDto: Partial<ReservationDto>) { const {email} = reservationDto
     return this.reservationService.check(email);
   }
 

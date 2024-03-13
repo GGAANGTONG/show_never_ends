@@ -8,6 +8,6 @@ import { ShowController } from './show.controller';
 @Module({
   imports: [TypeOrmModule.forFeature([Show])],
   controllers: [ShowController],
-  providers: [ShowService],
+  providers: [ShowService, ShowController],
 })
 export class ShowModule {}

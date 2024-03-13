@@ -48,7 +48,7 @@ export class UserService {
     }
 
 
-    //3. 프로필 보기
+    //2. 프로필 보기
     async profile(signInDto:Partial<SignInDto>): Promise<User | undefined> {
         const {email} = signInDto
         return await this.userRepository.createQueryBuilder('user').select(['user.email','user.name', 'user.nickname', 'user.role', 'user.phone', 'user.preference', 'user.point', 'user.reservation']).where('user.email = :email', {email}).getOne()

@@ -5,11 +5,13 @@ import {InjectRepository} from '@nestjs/typeorm';
 
 import {Show} from '../show/entities/show.entity'
 import {User} from '../user/entities/user.entity'
-import {Reservation} from '../user/entities/reservation.entity'
+import {Reservation} from '../reservation/entities/reservation.entity'
 
 import {RolesGuard} from '../auth/roles.guard';
 
 import { ReservationDto } from './dto/reservation.dto';
+
+
 
 // guard를 통해서 신원 인증함
 @UseGuards(RolesGuard)
@@ -17,30 +19,33 @@ import { ReservationDto } from './dto/reservation.dto';
 export class ReservationService {
   constructor(
     @InjectRepository(User)
-   private readonly userRepository:Repository<User>,
+   private userRepository:Repository<User>,
     @InjectRepository(Show)
-    private readonly showRepository:Repository<Show>,
+    private showRepository:Repository<Show>,
     @InjectRepository(Reservation)
-    private readonly reservationRepository:Repository<Reservation>
+    private reservationRepository:Repository<Reservation>,
     ){
     }
-    //공연 예매 서비스
 
-    // 인증되면 포인트를 확인함
-    // 이메일(구매자 확인), (공연 이름) 필요
-    // 포인트가 충분하면 구매, 부족하면 에러를 반환
-    // 예약 정보 생성(구매자, 공연 이름, 공연되는 극장/좌석, 표 가격)
-    // 트랜잭션 사용
-  reserve({email, show}: ReservationDto) {
-    const user = this.userRepository.findOneBy({email})
+  async reserve({email, show, seat, date}: ReservationDto) {
+    const user = await this.userRepository.findOne({where:{email}})
 
     if(!user)
     throw new UnauthorizedException('유저 정보가 존재하지 않습니다.')
 
-    const theShow = this.showRepository.findOneBy({name: show})
+    const theShow = await this.showRepository.findOne({where:{name: show}})
 
     if(!theShow)
     throw new BadRequestException('예매하고자 하는 공연 정보를 입력해 주세요.')
+
+    const availableSeat = await this.reservationRepository.findOne({
+      where:{
+        show_name: show
+      }
+    })
+    if(seat == availableSeat.seat) {
+      throw new BadRequestException('해당 좌석은 이미 예약된 좌석입니다.')
+    }
 
     const payment = user.point - theShow.price
     if(!payment && payment !== 0)
@@ -48,27 +53,30 @@ export class ReservationService {
     if(payment < 0) {
       throw new BadRequestException('포인트가 부족하여 공연을 예매할 수 없습니다.')
     }
-    this.reservationRepository.create({
+    await this.reservationRepository.create({
       user_email: user.email,
       user_nickname: user.nickname,
       show_name: theShow.name,
-      theatre: theShow.theatre.name,
-      seat: theShow.theatre.name.seat,
-      price: theShow.price
+      theTheatre: theShow.theTheatre,
+      seat,
+      price: theShow.price,
+      date
     })
     
-    this.userRepository.update({
-      where:{
+    const data = {
+      point: payment
+    }
+   await this.userRepository.update(
+      {
         email
       },
-      {point: payment}
-    })
+     data)
 
     return {message: '선택하신 공연이 예매되었습니다.'}
   }
 
-  check(email: Partial<ReservationDto>) {
-    const reservation = this.reservationRespository.findOne({email})
+  async check(email: string) {
+    const reservation = await this.reservationRepository.findOne({where: {user_email: email}})
     return reservation;
   }
 

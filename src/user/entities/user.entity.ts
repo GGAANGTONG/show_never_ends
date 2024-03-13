@@ -3,7 +3,7 @@ import {Column, Entity, Index, OneToMany, PrimaryGeneratedColumn} from 'typeorm'
 import {Role} from '../types/userRole.type'
 import {Category} from '../../show/types/category.type'
 
-import {Reservation} from './reservation.entity'
+import {Reservation} from '../../reservation/entities/reservation.entity'
 
 @Index('email', ['email'], {unique: true})
 @Entity({

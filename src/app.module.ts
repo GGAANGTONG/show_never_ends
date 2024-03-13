@@ -5,14 +5,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService} from '@nestjs/config'
 import { TypeOrmModule, TypeOrmModuleOptions} from '@nestjs/typeorm'
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ShowModule } from './show/show.module';
 
 import {User} from './user/entities/user.entity'
 import {Show} from './show/entities/show.entity'
+import {Theatre} from './show/entities/theatre.entity'
+import {Reservation} from './reservation/entities/reservation.entity'
+
 import { ReservationModule } from './reservation/reservation.module';
 
 const typeOrmModuleOptions = {
@@ -26,7 +27,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User, Show],
+    entities: [User, Show, Theatre, Reservation],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -54,7 +55,7 @@ const typeOrmModuleOptions = {
     ShowModule,
     ReservationModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

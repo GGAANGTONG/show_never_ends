@@ -1,11 +1,13 @@
-import {Column, Entity, Index, OneToMany, ManyToOne, PrimaryGeneratedColumn} from 'typeorm'
+import {Column, Entity, OneToMany, ManyToOne, PrimaryGeneratedColumn} from 'typeorm'
 
 import {Category} from '../../show/types/category.type'
+
+import {Theatre} from './theatre.entity'
+import {Reservation} from '../../reservation/entities/reservation.entity'
 
 const currentDate = new Date();
 const newDate = new Date(currentDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 
-@Index('email', ['email'], {unique: true})
 @Entity({
     name: 'show'
 })
@@ -34,14 +36,20 @@ export class Show {
     @Column({type: 'integer', nullable: false})
     price: number
 
+    @Column({type: 'varchar', nullable: false})
+    theTheatre: string
+
     @Column({type: 'datetime', default: new Date(), nullable: false})
     firstShow: Date
 
     @Column({type: 'datetime', default: newDate, nullable: false})
     lastShow: Date
 
-    @ManyToOne(()=> User, (user) => user.email)
-    user: User[];
+    @ManyToOne(()=> Theatre, (theatre) => theatre.name)
+    theatre: Theatre[];
+
+    @OneToMany(()=> Reservation, (reservation) => reservation.show_name)
+    reservation: Reservation[];
 
 }
 

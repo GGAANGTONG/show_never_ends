@@ -1,4 +1,7 @@
-import {Column, Entity, Index, OneToMany, PrimaryGeneratedColumn} from 'typeorm'
+import {Column, Entity, Index, OneToMany, OneToOne, ManyToOne, PrimaryGeneratedColumn} from 'typeorm'
+
+import {Show} from './show.entity' 
+import {Reservation} from '../../reservation/entities/reservation.entity'
 
 @Entity({
     name: 'theatre'
@@ -16,4 +19,11 @@ export class Theatre {
     @Column({type: 'integer', nullable: false})
     seat_max: number
 
+    @ManyToOne(()=> Reservation, (reservation) => reservation.theTheatre, {
+        onDelete: 'CASCADE'
+    })
+    reservation: Reservation[]
+
+    @OneToOne(()=> Show, (show) => show.theTheatre)
+    show: Show[]
 }
