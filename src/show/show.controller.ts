@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ShowService } from './show.service';
-import { CreateShowDto } from './dto/create-show.dto';
-import { UpdateShowDto } from './dto/update-show.dto';
+import {Roles} from 'src/auth/roles.decorator'
+import {RolesGuard} from 'src/auth/roles.guard'
+import {Role} from 'src/user/types/userRole.type'
 
+
+
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {FileInterceptor} from '@nestjs/platform-express'
+import {CreateShowDto} from './dto/show.dto'
+
+import { ShowService } from './show.service';
+
+@UseGuards(RolesGuard)
 @Controller('show')
 export class ShowController {
   constructor(private readonly showService: ShowService) {}
-
-  @Post()
-  create(@Body() createShowDto: CreateShowDto) {
-    return this.showService.create(createShowDto);
+//1-1. 새 공연 등록
+  @Roles(Role.Admin)
+  @Post('apply')
+  @UseInterceptors(FileInterceptor('files'))
+  async create(@UploadedFile() file: Express.Multer.File, @Body() createShowDto: CreateShowDto) {
+    return this.showService.create(file, createShowDto);
   }
 
-  @Get()
-  findAll() {
+//2. 공연 목록 보기
+  @Get('list')
+  async findAll() {
     return this.showService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.showService.findOne(+id);
+  //3. 키워드와 비슷한 공연 검색하기
+  @Get('search/:name')
+  async findSimilar(@Param('name') name: string) {
+    return this.showService.findSimilar(name);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShowDto: UpdateShowDto) {
-    return this.showService.update(+id, updateShowDto);
+  //4. 공연 상세보기
+  @Get('detail/:name')
+  async findOne(@Param('name') name: string) {
+    return this.showService.findOne(name);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.showService.remove(+id);
-  }
+  //6. 공연 삭제하기
+//   @Delete(':id')
+// //   remove(@Param('id') id: string) {
+// //     return this.showService.remove(+id);
+// //   }
 }

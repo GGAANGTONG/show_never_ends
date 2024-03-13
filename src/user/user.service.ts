@@ -8,6 +8,7 @@ import {InjectRepository} from '@nestjs/typeorm';
 
 import {User} from './entities/user.entity';
 import {Category} from '../show/types/category.type'
+import {SignUpDto, SignInDto} from './dto/signing.dto';
 
 @Injectable()
 export class UserService {
@@ -18,8 +19,11 @@ export class UserService {
     ) {
 }
     //애시당초 controller에서 preference에 대한 타입 검사를 하고 내려오니까, string으로 잡아도 상관이 없나?
-    async signUp(email: string, password: string, name: string, nickname: 
-    string, phone: string, preference?: Category) {
+
+    //1. 회원가입
+    async signUp(signUpDto:SignUpDto) {
+
+        const {email, password, name, nickname, phone, preference} = signUpDto
         const existingUser = await this.userRepository.findOne({
             where:{
                 email
@@ -43,24 +47,14 @@ export class UserService {
 
     }
 
-    async signIn(email: string, password: string) {
-        const user = await this.userRepository.findOne({
-            select: ['id', 'email', 'password'],
-            where: {
-                email
-            }
-        })
-        if(_.isNil(user)) {
-            throw new UnauthorizedException('이메일을 확인해주세요.')
-        }
 
-        if(!(await compare(password, user.password))) {
-            throw new UnauthorizedException('비밀번호를 확인해주세요.')
-        }
+    //3. 프로필 보기
+    async profile(signInDto:Partial<SignInDto>): Promise<User | undefined> {
+        const {email} = signInDto
+        return await this.userRepository.createQueryBuilder('user').select(['user.email','user.name', 'user.nickname', 'user.role', 'user.phone', 'user.preference', 'user.point', 'user.reservation']).where('user.email = :email', {email}).getOne()
+    }
 
-        const payload = {email, sub: user.id}
-        return {
-            access_token: this.jwtService.sign(payload)
-        }
+    async findByEmail(email: string) {
+        return await this.userRepository.findOne({where:{email}})
     }
 }
